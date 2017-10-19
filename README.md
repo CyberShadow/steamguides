@@ -58,6 +58,7 @@ Compile and run the `upload` program to overwrite the online version of the guid
 
 ## TODO
 
-- [ ] Downloading guides
-- [ ] Uploading images
+- [ ] Preserve section IDs
 - [ ] Linking to sections
+- [ ] Uploading images
+- [ ] Downloading guides

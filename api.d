@@ -10,6 +10,7 @@ import ae.net.ietf.url;
 import ae.sys.file;
 import ae.utils.regex;
 
+import steamguides.data;
 import steamguides.net;
 
 enum urlPrefix = "http://steamcommunity.com/sharedfiles/";
@@ -64,21 +65,14 @@ struct Guide
 		apiPost("setguidesubsection", params);
 	}
 
-	struct Info
+	/// Download guide data from Steam.
+	/// If full == false, don't download section bodies.
+	GuideData download(bool full)
 	{
-		struct Section
-		{
-			string id;
-		}
-		Section[] sections;
-	}
-
-	Info getInfo()
-	{
+		assert(!full, "Not implemented");
 		auto html = apiGet("manageguide/?id=" ~ this.id);
 		auto sectionIDs = html
 			.extractCapture(re!`href="javascript:RemoveSubSection\( subSection_\d+, '(\d+)' \)">`)
-			.map!(n => Info.Section(n))
 			.array;
 		if (!sessionid)
 		{
@@ -86,6 +80,15 @@ struct Guide
 				.extractCapture(re!`\bg_sessionID = "([^"]*)";`)
 				.front;
 		}
-		return Info(sectionIDs);
+
+		GuideData data;
+		data.id = this.id;
+		foreach (sectionID; sectionIDs)
+		{
+			GuideData.Section section;
+			section.id = sectionID;
+			data.sections ~= section;
+		}
+		return data;
 	}
 }
