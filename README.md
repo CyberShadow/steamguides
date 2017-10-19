@@ -56,9 +56,11 @@ Aside from the provisions above, the guide text is uploaded as-is, and is format
 
 Compile and run the `upload` program to overwrite the online version of the guide with that in your `.steamguide` files.
 
+The program will attempt to preserve section IDs (so as to not break links to individual guide sections). This is done by maintaining a mapping from each `.steamguide` file name to a Steam subsection ID in the file `sections.txt`. If you decide to rename some sections' `.steamguide` files, you may want to update the file names in `sections.txt` as well.
+
 ## TODO
 
-- [ ] Preserve section IDs
+- [X] Preserve section IDs
 - [ ] Linking to sections
 - [ ] Uploading images
 - [ ] Downloading guides
