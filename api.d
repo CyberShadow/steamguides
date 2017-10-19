@@ -2,6 +2,7 @@ module steamguides.api;
 
 import std.algorithm.iteration;
 import std.array;
+import std.conv;
 import std.file;
 import std.net.curl;
 import std.stdio;
@@ -63,6 +64,17 @@ struct Guide
 			params["description"] = description;
 
 		apiPost("setguidesubsection", params);
+	}
+
+	void setSectionOrder(string[] sectionIDs)
+	{
+		auto params = [
+			"sessionid" : sessionid,
+			"id" : this.id,
+		];
+		foreach (n, sectionID; sectionIDs)
+			params["sub_sections[" ~ sectionID ~ "][sort_order]"] = text(n);
+		apiPost("setguidesubsectionorder", params);
 	}
 
 	/// Download guide data from Steam.

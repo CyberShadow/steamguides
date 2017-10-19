@@ -2,6 +2,7 @@ module steamguides.upload;
 
 import ae.utils.aa;
 
+import std.algorithm.comparison;
 import std.algorithm.iteration;
 import std.algorithm.sorting;
 import std.array;
@@ -86,6 +87,14 @@ void main()
 			stderr.writefln("Deleting extant section %s...", section.id);
 			api.removeSubsection(section.id);
 		}
+
+	if (!equal(
+			remoteData.sections.map!(section => section.id).filter!(id => id in localSections),
+			localData.sections.map!(section => section.id)))
+	{
+		stderr.writefln("Setting section order...");
+		api.setSectionOrder(localData.sections.map!(section => section.id).array);
+	}
 
 	localData.sections.map!(section => "%s\t%s".format(section.id, section.fileName)).join("\n").toFile(catalogFN);
 
