@@ -22,8 +22,8 @@ You must first export your cookies to a text file to allow the program to upload
 10. Navigate to your user app settings directory:
     - Windows: `%USERPROFILE%\AppData`
     - POSIX (Linux/Mac): `$XDG_CONFIG_HOME` or `~/.config`
-11. Create the directory "cookies".
-12. Create the text file `steamcommunity.com` (no extension).
+11. Create the directory `cookies.
+12. Create the text file `steamcommunity.com` (no additional extension).
 13. Paste the value of the cookie header.
 
 ### Guide Setup
@@ -32,7 +32,7 @@ You must first export your cookies to a text file to allow the program to upload
 2. Find your guide ID in the URL bar.
    E.g. for http://steamcommunity.com/sharedfiles/manageguide/?id=1234567890, the guide ID is 1234567890.
 3. Create a new directory for your guide.
-4. Create a text file, called `guideid.txt`, which contains the ID (and nothing else).
+4. In the directory, create a text file, called `guideid.txt`, which contains the ID (and nothing else).
 
 Although you can use this software with existing guides, note that it will irreversibly **overwrite** the entire guide while uploading.
 
