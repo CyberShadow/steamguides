@@ -1,6 +1,7 @@
 module steamguides.upload;
 
 import ae.utils.aa;
+import ae.utils.regex;
 
 import std.algorithm.comparison;
 import std.algorithm.iteration;
@@ -8,6 +9,7 @@ import std.algorithm.sorting;
 import std.array;
 import std.exception;
 import std.file;
+import std.regex;
 import std.stdio;
 import std.string;
 import std.typecons;
@@ -28,7 +30,29 @@ GuideData readGuide()
 
 	foreach (de; dirEntries("", "*.steamguide", SpanMode.shallow).array.sort())
 	{
-		auto lines = de.readText.splitLines;
+		auto text = de.readText;
+		text = text.replaceAll!(
+			(m)
+			{
+				auto sectionName = m[1];
+				auto linkText = m[2];
+				string sectionID;
+				auto fileName = sectionName.endsWith(".steamguide") ? sectionName : sectionName ~ ".steamguide";
+				if (fileName in catalog)
+					sectionID = catalog[fileName];
+				else
+				if (fileName.exists)
+					stderr.writefln(">>> No section ID yet for new section %s - please re-run a second time", fileName);
+				else
+				if (sectionName.match(re!`^\d{7,}$`))
+					sectionID = sectionName; // assume this is a section ID
+				else
+					stderr.writefln(">>> Ignoring link to unknown section '%s'!", sectionName);
+
+				return format("[url=http://steamcommunity.com/sharedfiles/filedetails/?id=%s#%s]%s[/url]",
+					result.id, sectionID, linkText);
+			})(re!`\[section-link=(.*?)\](.*?)\[/section-link\]`);
+		auto lines = text.splitLines;
 		enforce(lines.length >= 3, "Too few lines");
 		enforce(lines[1] == "", "Second line must be blank");
 		GuideData.Section section;

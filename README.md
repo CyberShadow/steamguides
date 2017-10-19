@@ -52,15 +52,19 @@ The section ordering is defined by the lexicographical ordering of the `.steamgu
 
 The author recommends placing the `.steamguide` files under version control (i.e. Git), and publishing it on GitHub, so that editing history is recorded and contributions to the guide can be easily accepted using GitHub pull requests.
 
-Aside from the provisions above, the guide text is uploaded as-is, and is formatted according to [Steam's guide/comment formatting syntax](http://steamcommunity.com/comment/Guide/formattinghelp).
+Aside from what is described here, the guide text is uploaded as-is, and is formatted according to [Steam's guide/comment formatting syntax](http://steamcommunity.com/comment/Guide/formattinghelp).
 
 Compile and run the `upload` program to overwrite the online version of the guide with that in your `.steamguide` files.
 
+#### Sections
+
 The program will attempt to preserve section IDs (so as to not break links to individual guide sections). This is done by maintaining a mapping from each `.steamguide` file name to a Steam subsection ID in the file `sections.txt`. If you decide to rename some sections' `.steamguide` files, you may want to update the file names in `sections.txt` as well.
+
+An additional syntax is provided for linking to sections: `[section-link=SECTION-NAME-OR-ID]LINK-TEXT[/section-link]`. The `[section-link]` tag allows creating a link to a specific section within the same guide, and will be rewritten to an `[url]` tag with an anchor to the corresponding section. `SECTION-NAME-OR-ID` can be either the file name of a `.steamguide` section file (extension is optional), or the numeric section ID.
 
 ## TODO
 
 - [X] Preserve section IDs
-- [ ] Linking to sections
+- [X] Linking to sections
 - [ ] Uploading images
 - [ ] Downloading guides
