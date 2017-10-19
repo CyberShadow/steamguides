@@ -131,8 +131,8 @@ void main()
 
 	void save()
 	{
-		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.localHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
-		localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.localHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
+		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.remoteHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
+		localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.remoteHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
 	}
 
 	auto remoteImages = remoteData.images.map!(image => image.id).toSet;
@@ -177,6 +177,7 @@ void main()
 			stderr.writefln("Updated image by ID.", image.id);
 		}
 
+		image.remoteHash = image.localHash;
 		save();
 	}
 
@@ -220,6 +221,7 @@ void main()
 			section.id = remoteData.sections[$-1].id;
 		}
 
+		section.remoteHash = section.localHash;
 		save();
 	}
 
