@@ -129,61 +129,10 @@ void main()
 	auto remoteData = api.download(false);
 	stderr.writefln("Guide has %d sections.", remoteData.sections.length);
 
-	auto remoteSections = remoteData.sections.map!(section => section.id).toSet;
-
 	void save()
 	{
 		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.currentHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
 		localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.currentHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
-	}
-
-	foreach (ref section; localData.sections)
-	{
-		string targetID = null;
-		if (!section.id)
-			stderr.writefln("Uploading new section %s...", section.fileName);
-		else if (section.id !in remoteSections)
-		{
-			stderr.writefln("Recreating section %s (was ID %s)...", section.fileName, section.id);
-			section.id = null;
-		}
-		else if (section.currentHash == section.oldHash)
-		{
-			stderr.writefln("Section %s (%s) is up to date, skipping.", section.fileName, section.id);
-			continue;
-		}
-		else
-		{
-			stderr.writefln("Updating section %s (%s)...", section.fileName, section.id);
-			targetID = section.id;
-		}
-
-		api.writeSubsection(targetID, section.title, section.contents);
-
-		if (!targetID)
-		{
-			remoteData = api.download(false);
-			section.id = remoteData.sections[$-1].id;
-		}
-
-		save();
-	}
-
-	auto localSections = localData.sections.map!(section => section.id).toSet;
-
-	foreach (section; remoteData.sections)
-		if (section.id !in localSections)
-		{
-			stderr.writefln("Deleting extant section %s...", section.id);
-			api.removeSubsection(section.id);
-		}
-
-	if (!equal(
-			remoteData.sections.map!(section => section.id).filter!(id => id in localSections),
-			localData.sections.map!(section => section.id)))
-	{
-		stderr.writefln("Setting section order...");
-		api.setSectionOrder(localData.sections.map!(section => section.id).array);
 	}
 
 	auto remoteImages = remoteData.images.map!(image => image.id).toSet;
@@ -239,6 +188,57 @@ void main()
 			stderr.writefln("Deleting extant image %s...", image.id);
 			api.removePreview(image.id);
 		}
+
+	auto remoteSections = remoteData.sections.map!(section => section.id).toSet;
+
+	foreach (ref section; localData.sections)
+	{
+		string targetID = null;
+		if (!section.id)
+			stderr.writefln("Uploading new section %s...", section.fileName);
+		else if (section.id !in remoteSections)
+		{
+			stderr.writefln("Recreating section %s (was ID %s)...", section.fileName, section.id);
+			section.id = null;
+		}
+		else if (section.currentHash == section.oldHash)
+		{
+			stderr.writefln("Section %s (%s) is up to date, skipping.", section.fileName, section.id);
+			continue;
+		}
+		else
+		{
+			stderr.writefln("Updating section %s (%s)...", section.fileName, section.id);
+			targetID = section.id;
+		}
+
+		api.writeSubsection(targetID, section.title, section.contents);
+
+		if (!targetID)
+		{
+			remoteData = api.download(false);
+			section.id = remoteData.sections[$-1].id;
+		}
+
+		save();
+	}
+
+	auto localSections = localData.sections.map!(section => section.id).toSet;
+
+	foreach (section; remoteData.sections)
+		if (section.id !in localSections)
+		{
+			stderr.writefln("Deleting extant section %s...", section.id);
+			api.removeSubsection(section.id);
+		}
+
+	if (!equal(
+			remoteData.sections.map!(section => section.id).filter!(id => id in localSections),
+			localData.sections.map!(section => section.id)))
+	{
+		stderr.writefln("Setting section order...");
+		api.setSectionOrder(localData.sections.map!(section => section.id).array);
+	}
 
 	stderr.writefln("Done!");
 }
