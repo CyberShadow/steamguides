@@ -1,5 +1,6 @@
 module steamguides.upload;
 
+import ae.sys.dataio;
 import ae.utils.aa;
 import ae.utils.regex;
 
@@ -9,6 +10,7 @@ import std.algorithm.sorting;
 import std.array;
 import std.exception;
 import std.file;
+import std.path;
 import std.regex;
 import std.stdio;
 import std.string;
@@ -18,11 +20,26 @@ import steamguides.api;
 import steamguides.data;
 
 enum sectionMapFN = "sections.txt";
+enum imageDir = "images/";
+enum imageMapFN = imageDir ~ "images.txt";
 
 GuideData readGuide()
 {
 	GuideData result;
 	result.id = readText("guideid.txt");
+
+	string[string] imageMap;
+	if (imageMapFN.exists)
+		imageMap = imageMapFN.slurp!(string, string)("%s\t%s").map!(t => tuple(t[1], t[0])).assocArray;
+
+	foreach (de; dirEntries(imageDir, "*.{png,jpg,jpeg,gif}", SpanMode.shallow).array.sort())
+	{
+		GuideData.Image image;
+		image.fileName = de.name.baseName;
+		if (image.fileName in imageMap)
+			image.id = imageMap[image.fileName];
+		result.images ~= image;
+	}
 
 	string[string] sectionMap;
 	if (sectionMapFN.exists)
@@ -31,6 +48,7 @@ GuideData readGuide()
 	foreach (de; dirEntries("", "*.steamguide", SpanMode.shallow).array.sort())
 	{
 		auto text = de.readText;
+
 		text = text.replaceAll!(
 			(m)
 			{
@@ -52,6 +70,28 @@ GuideData readGuide()
 				return format("[url=http://steamcommunity.com/sharedfiles/filedetails/?id=%s#%s]%s[/url]",
 					result.id, sectionID, linkText);
 			})(re!`\[section-link=(.*?)\](.*?)\[/section-link\]`);
+
+		text = text.replaceAll!(
+			(m)
+			{
+				auto fileName = m[2];
+				if (fileName.match(re!`^\d{6,}$`))
+					return m[0]; // Numeric - leave as-is
+				auto tag = "preview" ~ m[1];
+				auto params = m[3];
+
+				string imageID;
+				if (fileName in imageMap)
+					imageID = imageMap[fileName];
+				else
+				if ((imageDir ~ fileName).exists)
+					stderr.writefln(">>> No image ID yet for new image %s - please re-run a second time", fileName);
+				else
+					stderr.writefln(">>> Ignoring link to unknown image '%s'!", fileName);
+
+				return format("[%s=%s;%s][%s]", tag, imageID, params, tag);
+			})(re!`\[preview(icon|img)=(.*?);(.*?)\]\[/preview(icon|img)\]`);
+
 		auto lines = text.splitLines;
 		enforce(lines.length >= 3, "Too few lines");
 		enforce(lines[1] == "", "Second line must be blank");
@@ -59,10 +99,11 @@ GuideData readGuide()
 		section.fileName = de.name;
 		section.title = lines[0];
 		section.contents = lines[2..$].join("\n");
-		if (de.name in sectionMap)
-			section.id = sectionMap[de.name];
+		if (section.fileName in sectionMap)
+			section.id = sectionMap[section.fileName];
 		result.sections ~= section;
 	}
+
 	return result;
 }
 
@@ -120,7 +161,43 @@ void main()
 		api.setSectionOrder(localData.sections.map!(section => section.id).array);
 	}
 
+	auto remoteImages = remoteData.images.map!(image => image.id).toSet;
+
+	foreach (ref image; localData.images)
+	{
+		string targetID = null;
+		if (!image.id)
+			stderr.writefln("Uploading new image %s...", image.fileName);
+		else if (image.id in remoteImages)
+		{
+			stderr.writefln("Updating image %s (%s)...", image.fileName, image.id);
+			targetID = image.id;
+		}
+		else
+		{
+			stderr.writefln("Recreating image %s (was ID %s)...", image.fileName, image.id);
+			image.id = null;
+		}
+
+		auto results = api.uploadImage(image.fileName, readData(imageDir ~ image.fileName));
+		if (results.length)
+		{
+			enforce(results.length == 1, "Too many results");
+			image.id = results[0].id;
+		}
+	}
+
+	auto localImages = localData.images.map!(image => image.id).toSet;
+
+	foreach (image; remoteData.images)
+		if (image.id !in localImages)
+		{
+			stderr.writefln("Deleting extant image %s...", image.id);
+			api.removePreview(image.id);
+		}
+
 	localData.sections.map!(section => "%s\t%s".format(section.id, section.fileName)).join("\n").toFile(sectionMapFN);
+	localData.images.map!(image => "%s\t%s".format(image.id, image.fileName)).join("\n").toFile(imageMapFN);
 
 	stderr.writefln("Done!");
 }

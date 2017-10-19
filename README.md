@@ -62,9 +62,8 @@ The program will attempt to preserve section IDs (so as to not break links to in
 
 An additional syntax is provided for linking to sections: `[section-link=SECTION-NAME-OR-ID]LINK-TEXT[/section-link]`. The `[section-link]` tag allows creating a link to a specific section within the same guide, and will be rewritten to an `[url]` tag with an anchor to the corresponding section. `SECTION-NAME-OR-ID` can be either the file name of a `.steamguide` section file (extension is optional), or the numeric section ID.
 
-## TODO
+#### Images
 
-- [X] Preserve section IDs
-- [X] Linking to sections
-- [ ] Uploading images
-- [ ] Downloading guides
+If you create a directory called `images` in your guide directory, the program will also upload any image files placed there.
+
+You can then reference them in your guide using the usual `[previewimg]` and `[previewicon]` tags, however, instead of the numeric ID, you can specify an image file name. For example: `[previewicon=smiley.png;sizeOriginal,inline][/previewicon]`

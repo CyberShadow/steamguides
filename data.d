@@ -2,6 +2,8 @@ module steamguides.data;
 
 struct GuideData
 {
+	string id;
+
 	struct Section
 	{
 		string id;
@@ -9,7 +11,12 @@ struct GuideData
 		string title;
 		string contents;
 	}
-
-	string id;
 	Section[] sections;
+
+	struct Image
+	{
+		string id;
+		string fileName;
+	}
+	Image[] images;
 }
