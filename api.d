@@ -33,7 +33,7 @@ struct Guide
 
 	void removeSubsection(string sectionid)
 	{
-		apiPost("setguidesubsection", [
+		apiPost("removeguidesubsection", [
 			"sessionid" : sessionid,
 			"id" : this.id,
 			"sectionid" : sectionid,
