@@ -162,6 +162,7 @@ void main()
 	}
 
 	auto remoteImages = remoteData.images.map!(image => image.id).toSet;
+	auto remoteImageFiles = remoteData.images.map!(image => tuple(image.fileName, image.id)).assocArray;
 
 	foreach (ref image; localData.images)
 	{
@@ -184,6 +185,17 @@ void main()
 		{
 			enforce(results.length == 1, "Too many results");
 			image.id = results[0].id;
+			stderr.writefln("Uploaded new image with ID %s.", image.id);
+		}
+		else if (image.fileName in remoteImageFiles)
+		{
+			image.id = remoteImageFiles[image.fileName];
+			stderr.writefln("Updated image %s by file name.", image.id);
+		}
+		else
+		{
+			enforce(image.id, "Didn't get an image ID for a new image!");
+			stderr.writefln("Updated image by ID.", image.id);
 		}
 	}
 
