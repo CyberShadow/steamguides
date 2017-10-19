@@ -3,6 +3,7 @@ module steamguides.upload;
 import ae.sys.dataio;
 import ae.sys.file;
 import ae.utils.aa;
+import ae.utils.digest;
 import ae.utils.meta.args;
 import ae.utils.regex;
 import ae.utils.text;
@@ -58,7 +59,6 @@ GuideData readGuide()
 	foreach (de; dirEntries("", "*.steamguide", SpanMode.shallow).array.sort())
 	{
 		auto text = de.readText;
-		bool bad;
 
 		text = text.replaceAll!(
 			(m)
@@ -71,10 +71,7 @@ GuideData readGuide()
 					sectionID = sectionMap[fileName].id;
 				else
 				if (fileName.exists)
-				{
 					stderr.writefln(">>> No section ID yet for new section %s - please re-run a second time", fileName);
-					bad = true;
-				}
 				else
 				if (sectionName.match(re!`^\d{7,}$`))
 					sectionID = sectionName; // assume this is a section ID
@@ -99,10 +96,7 @@ GuideData readGuide()
 					imageID = imageMap[fileName].id;
 				else
 				if ((imageDir ~ fileName).exists)
-				{
 					stderr.writefln(">>> No image ID yet for new image %s - please re-run a second time", fileName);
-					bad = true;
-				}
 				else
 					stderr.writefln(">>> Ignoring link to unknown image '%s'!", fileName);
 
@@ -118,7 +112,7 @@ GuideData readGuide()
 			section = sectionMap[section.fileName];
 		section.title = lines[0];
 		section.contents = lines[2..$].join("\n");
-		section.currentHash = mdFile(de.name).toLowerHex ~ (bad ? "-bad" : "");
+		section.currentHash = getDigestString!MD5(text).toLower;
 		result.sections ~= section;
 	}
 
