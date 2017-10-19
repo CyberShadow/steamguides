@@ -13,6 +13,8 @@ import steamguides.data;
 GuideData readGuide()
 {
 	GuideData result;
+	result.id = readText("guideid.txt");
+
 	foreach (de; dirEntries("", "*.steamguide", SpanMode.shallow).array.sort())
 	{
 		auto lines = de.readText.splitLines;
@@ -28,18 +30,18 @@ GuideData readGuide()
 
 void main()
 {
-	auto guideID = readText("guideid.txt");
-	auto guide = Guide(guideID);
+	auto localData = readGuide();
+
+	auto api = Guide(localData.id);
 
 	stderr.writeln("Getting guide info...");
-	auto remoteData = guide.download(false);
+	auto remoteData = api.download(false);
 	stderr.writefln("Guide has %d sections.", remoteData.sections.length);
 
-	auto localData = readGuide();
 	foreach (n, section; localData.sections)
 	{
 		stderr.writefln("Uploading section %d/%d...", n+1, localData.sections.length);
-		guide.writeSubsection(
+		api.writeSubsection(
 			n < remoteData.sections.length ? remoteData.sections[n].id : null,
 			section.title,
 			section.contents);
@@ -48,7 +50,7 @@ void main()
 		foreach (section; remoteData.sections[localData.sections.length..$])
 		{
 			stderr.writefln("Deleting extraneous section %s...", section.id);
-			guide.removeSubsection(section.id);
+			api.removeSubsection(section.id);
 		}
 	stderr.writefln("Done!");
 }
