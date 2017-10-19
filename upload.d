@@ -17,16 +17,16 @@ import std.typecons;
 import steamguides.api;
 import steamguides.data;
 
-enum catalogFN = "sections.txt";
+enum sectionMapFN = "sections.txt";
 
 GuideData readGuide()
 {
 	GuideData result;
 	result.id = readText("guideid.txt");
 
-	string[string] catalog;
-	if (catalogFN.exists)
-		catalog = catalogFN.slurp!(string, string)("%s\t%s").map!(t => tuple(t[1], t[0])).assocArray;
+	string[string] sectionMap;
+	if (sectionMapFN.exists)
+		sectionMap = sectionMapFN.slurp!(string, string)("%s\t%s").map!(t => tuple(t[1], t[0])).assocArray;
 
 	foreach (de; dirEntries("", "*.steamguide", SpanMode.shallow).array.sort())
 	{
@@ -38,8 +38,8 @@ GuideData readGuide()
 				auto linkText = m[2];
 				string sectionID;
 				auto fileName = sectionName.endsWith(".steamguide") ? sectionName : sectionName ~ ".steamguide";
-				if (fileName in catalog)
-					sectionID = catalog[fileName];
+				if (fileName in sectionMap)
+					sectionID = sectionMap[fileName];
 				else
 				if (fileName.exists)
 					stderr.writefln(">>> No section ID yet for new section %s - please re-run a second time", fileName);
@@ -59,8 +59,8 @@ GuideData readGuide()
 		section.fileName = de.name;
 		section.title = lines[0];
 		section.contents = lines[2..$].join("\n");
-		if (de.name in catalog)
-			section.id = catalog[de.name];
+		if (de.name in sectionMap)
+			section.id = sectionMap[de.name];
 		result.sections ~= section;
 	}
 	return result;
@@ -120,7 +120,7 @@ void main()
 		api.setSectionOrder(localData.sections.map!(section => section.id).array);
 	}
 
-	localData.sections.map!(section => "%s\t%s".format(section.id, section.fileName)).join("\n").toFile(catalogFN);
+	localData.sections.map!(section => "%s\t%s".format(section.id, section.fileName)).join("\n").toFile(sectionMapFN);
 
 	stderr.writefln("Done!");
 }
