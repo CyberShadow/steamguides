@@ -21,6 +21,7 @@ GuideData readGuide()
 		enforce(lines.length >= 3, "Too few lines");
 		enforce(lines[1] == "", "Second line must be blank");
 		GuideData.Section section;
+		section.fileName = de.name;
 		section.title = lines[0];
 		section.contents = lines[2..$].join("\n");
 		result.sections ~= section;
