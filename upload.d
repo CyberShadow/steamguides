@@ -38,7 +38,7 @@ GuideData readGuide()
 	if (imageMapFN.exists)
 		imageMap = imageMapFN.slurp!(string, string, string)("%s\t%s\t%s")
 			.map!(t => tuple(t[2],
-					args!(GuideData.Image, id => t[0], oldHash => t[1], fileName => t[2]))).assocArray;
+					args!(GuideData.Image, id => t[0], remoteHash => t[1], fileName => t[2]))).assocArray;
 
 	foreach (de; dirEntries(imageDir, "*.{png,jpg,jpeg,gif}", SpanMode.shallow).array.sort())
 	{
@@ -46,7 +46,7 @@ GuideData readGuide()
 		image.fileName = de.name.baseName;
 		if (image.fileName in imageMap)
 			image = imageMap[de.name.baseName];
-		image.currentHash = mdFile(de.name).toLowerHex;
+		image.localHash = mdFile(de.name).toLowerHex;
 		result.images ~= image;
 	}
 
@@ -54,7 +54,7 @@ GuideData readGuide()
 	if (sectionMapFN.exists)
 		sectionMap = sectionMapFN.slurp!(string, string, string)("%s\t%s\t%s")
 			.map!(t => tuple(t[2],
-					args!(GuideData.Section, id => t[0], oldHash => t[1], fileName => t[2]))).assocArray;
+					args!(GuideData.Section, id => t[0], remoteHash => t[1], fileName => t[2]))).assocArray;
 
 	foreach (de; dirEntries("", "*.steamguide", SpanMode.shallow).array.sort())
 	{
@@ -112,7 +112,7 @@ GuideData readGuide()
 			section = sectionMap[section.fileName];
 		section.title = lines[0];
 		section.contents = lines[2..$].join("\n");
-		section.currentHash = getDigestString!MD5(text).toLower;
+		section.localHash = getDigestString!MD5(text).toLower;
 		result.sections ~= section;
 	}
 
@@ -131,8 +131,8 @@ void main()
 
 	void save()
 	{
-		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.currentHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
-		localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.currentHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
+		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.localHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
+		localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.localHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
 	}
 
 	auto remoteImages = remoteData.images.map!(image => image.id).toSet;
@@ -148,7 +148,7 @@ void main()
 			stderr.writefln("Recreating image %s (was ID %s)...", image.fileName, image.id);
 			image.id = null;
 		}
-		else if (image.currentHash == image.oldHash)
+		else if (image.localHash == image.remoteHash)
 		{
 			stderr.writefln("Image %s (%s) is up to date, skipping.", image.fileName, image.id);
 			continue;
@@ -201,7 +201,7 @@ void main()
 			stderr.writefln("Recreating section %s (was ID %s)...", section.fileName, section.id);
 			section.id = null;
 		}
-		else if (section.currentHash == section.oldHash)
+		else if (section.localHash == section.remoteHash)
 		{
 			stderr.writefln("Section %s (%s) is up to date, skipping.", section.fileName, section.id);
 			continue;
