@@ -13,7 +13,7 @@ import std.string;
 import ae.sys.file;
 import ae.sys.paths;
 
-bool verbose = true;
+bool verbose = false;
 
 private static HTTP http;
 static this() { http = HTTP(); }
