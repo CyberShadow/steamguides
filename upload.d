@@ -1,8 +1,11 @@
 module steamguides.upload;
 
 import ae.sys.dataio;
+import ae.sys.file;
 import ae.utils.aa;
+import ae.utils.meta.args;
 import ae.utils.regex;
+import ae.utils.text;
 
 import std.algorithm.comparison;
 import std.algorithm.iteration;
@@ -19,6 +22,8 @@ import std.typecons;
 import steamguides.api;
 import steamguides.data;
 
+alias toFile = ae.sys.file.toFile;
+
 enum sectionMapFN = "sections.txt";
 enum imageDir = "images/";
 enum imageMapFN = imageDir ~ "images.txt";
@@ -28,26 +33,32 @@ GuideData readGuide()
 	GuideData result;
 	result.id = readText("guideid.txt");
 
-	string[string] imageMap;
+	GuideData.Image[string] imageMap;
 	if (imageMapFN.exists)
-		imageMap = imageMapFN.slurp!(string, string)("%s\t%s").map!(t => tuple(t[1], t[0])).assocArray;
+		imageMap = imageMapFN.slurp!(string, string, string)("%s\t%s\t%s")
+			.map!(t => tuple(t[2],
+					args!(GuideData.Image, id => t[0], oldHash => t[1], fileName => t[2]))).assocArray;
 
 	foreach (de; dirEntries(imageDir, "*.{png,jpg,jpeg,gif}", SpanMode.shallow).array.sort())
 	{
 		GuideData.Image image;
 		image.fileName = de.name.baseName;
 		if (image.fileName in imageMap)
-			image.id = imageMap[image.fileName];
+			image = imageMap[de.name.baseName];
+		image.currentHash = mdFile(de.name).toLowerHex;
 		result.images ~= image;
 	}
 
-	string[string] sectionMap;
+	GuideData.Section[string] sectionMap;
 	if (sectionMapFN.exists)
-		sectionMap = sectionMapFN.slurp!(string, string)("%s\t%s").map!(t => tuple(t[1], t[0])).assocArray;
+		sectionMap = sectionMapFN.slurp!(string, string, string)("%s\t%s\t%s")
+			.map!(t => tuple(t[2],
+					args!(GuideData.Section, id => t[0], oldHash => t[1], fileName => t[2]))).assocArray;
 
 	foreach (de; dirEntries("", "*.steamguide", SpanMode.shallow).array.sort())
 	{
 		auto text = de.readText;
+		bool bad;
 
 		text = text.replaceAll!(
 			(m)
@@ -57,10 +68,13 @@ GuideData readGuide()
 				string sectionID;
 				auto fileName = sectionName.endsWith(".steamguide") ? sectionName : sectionName ~ ".steamguide";
 				if (fileName in sectionMap)
-					sectionID = sectionMap[fileName];
+					sectionID = sectionMap[fileName].id;
 				else
 				if (fileName.exists)
+				{
 					stderr.writefln(">>> No section ID yet for new section %s - please re-run a second time", fileName);
+					bad = true;
+				}
 				else
 				if (sectionName.match(re!`^\d{7,}$`))
 					sectionID = sectionName; // assume this is a section ID
@@ -82,10 +96,13 @@ GuideData readGuide()
 
 				string imageID;
 				if (fileName in imageMap)
-					imageID = imageMap[fileName];
+					imageID = imageMap[fileName].id;
 				else
 				if ((imageDir ~ fileName).exists)
+				{
 					stderr.writefln(">>> No image ID yet for new image %s - please re-run a second time", fileName);
+					bad = true;
+				}
 				else
 					stderr.writefln(">>> Ignoring link to unknown image '%s'!", fileName);
 
@@ -97,10 +114,11 @@ GuideData readGuide()
 		enforce(lines[1] == "", "Second line must be blank");
 		GuideData.Section section;
 		section.fileName = de.name;
+		if (section.fileName in sectionMap)
+			section = sectionMap[section.fileName];
 		section.title = lines[0];
 		section.contents = lines[2..$].join("\n");
-		if (section.fileName in sectionMap)
-			section.id = sectionMap[section.fileName];
+		section.currentHash = mdFile(de.name).toLowerHex ~ (bad ? "-bad" : "");
 		result.sections ~= section;
 	}
 
@@ -124,15 +142,20 @@ void main()
 		string targetID = null;
 		if (!section.id)
 			stderr.writefln("Uploading new section %s...", section.fileName);
-		else if (section.id in remoteSections)
-		{
-			stderr.writefln("Updating section %s (%s)...", section.fileName, section.id);
-			targetID = section.id;
-		}
-		else
+		else if (section.id !in remoteSections)
 		{
 			stderr.writefln("Recreating section %s (was ID %s)...", section.fileName, section.id);
 			section.id = null;
+		}
+		else if (section.currentHash == section.oldHash)
+		{
+			stderr.writefln("Section %s (%s) is up to date, skipping.", section.fileName, section.id);
+			continue;
+		}
+		else
+		{
+			stderr.writefln("Updating section %s (%s)...", section.fileName, section.id);
+			targetID = section.id;
 		}
 
 		api.writeSubsection(targetID, section.title, section.contents);
@@ -169,15 +192,20 @@ void main()
 		string targetID = null;
 		if (!image.id)
 			stderr.writefln("Uploading new image %s...", image.fileName);
-		else if (image.id in remoteImages)
-		{
-			stderr.writefln("Updating image %s (%s)...", image.fileName, image.id);
-			targetID = image.id;
-		}
-		else
+		else if (image.id !in remoteImages)
 		{
 			stderr.writefln("Recreating image %s (was ID %s)...", image.fileName, image.id);
 			image.id = null;
+		}
+		else if (image.currentHash == image.oldHash)
+		{
+			stderr.writefln("Image %s (%s) is up to date, skipping.", image.fileName, image.id);
+			continue;
+		}
+		else
+		{
+			stderr.writefln("Updating image %s (%s)...", image.fileName, image.id);
+			targetID = image.id;
 		}
 
 		auto results = api.uploadImage(image.fileName, readData(imageDir ~ image.fileName));
@@ -208,8 +236,8 @@ void main()
 			api.removePreview(image.id);
 		}
 
-	localData.sections.map!(section => "%s\t%s".format(section.id, section.fileName)).join("\n").toFile(sectionMapFN);
-	localData.images.map!(image => "%s\t%s".format(image.id, image.fileName)).join("\n").toFile(imageMapFN);
+	localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.currentHash, section.fileName)).join("\n").toFile(sectionMapFN);
+	localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.currentHash, image.fileName)).join("\n").toFile(imageMapFN);
 
 	stderr.writefln("Done!");
 }

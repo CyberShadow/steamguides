@@ -10,6 +10,7 @@ struct GuideData
 		string fileName; // local only
 		string title;
 		string contents;
+		string oldHash, currentHash; // local only
 	}
 	Section[] sections;
 
@@ -17,6 +18,7 @@ struct GuideData
 	{
 		string id;
 		string fileName;
+		string oldHash, currentHash; // local only
 	}
 	Image[] images;
 }
