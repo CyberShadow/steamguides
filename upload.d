@@ -131,6 +131,12 @@ void main()
 
 	auto remoteSections = remoteData.sections.map!(section => section.id).toSet;
 
+	void save()
+	{
+		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.currentHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
+		localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.currentHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
+	}
+
 	foreach (ref section; localData.sections)
 	{
 		string targetID = null;
@@ -159,6 +165,8 @@ void main()
 			remoteData = api.download(false);
 			section.id = remoteData.sections[$-1].id;
 		}
+
+		save();
 	}
 
 	auto localSections = localData.sections.map!(section => section.id).toSet;
@@ -219,6 +227,8 @@ void main()
 			enforce(image.id, "Didn't get an image ID for a new image!");
 			stderr.writefln("Updated image by ID.", image.id);
 		}
+
+		save();
 	}
 
 	auto localImages = localData.images.map!(image => image.id).toSet;
@@ -229,9 +239,6 @@ void main()
 			stderr.writefln("Deleting extant image %s...", image.id);
 			api.removePreview(image.id);
 		}
-
-	localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.currentHash, section.fileName)).join("\n").toFile(sectionMapFN);
-	localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.currentHash, image.fileName)).join("\n").toFile(imageMapFN);
 
 	stderr.writefln("Done!");
 }
