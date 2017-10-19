@@ -24,29 +24,6 @@ string apiPost(string name, string[string] params)
 	return cast(string)req(urlPrefix ~ name, HTTP.Method.post, encodeUrlParameters(params));
 }
 
-/*
-void getSessionID(string target)
-{
-	auto sessionID =
-		(cast(string)req("https://store.steampowered.com/account/registerkey", HTTP.Method.get, null))
-		.extractCapture(re!`var g_sessionID = "([^"]*)";`)
-		.front;
-	std.file.write(target, sessionID);
-}
-
-@property string sessionid()
-{
-	static string sessionID;
-	if (!sessionID)
-	{
-		enum fn = "sessionid.txt";
-		cached!getSessionID(fn);
-		sessionID = readText(fn);
-		stderr.writeln("Got Steam session ID: ", sessionID);
-	}
-	return sessionID;
-}
-*/
 string sessionid;
 
 struct Guide
