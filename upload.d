@@ -14,6 +14,7 @@ import std.algorithm.sorting;
 import std.array;
 import std.exception;
 import std.file;
+import std.getopt;
 import std.path;
 import std.regex;
 import std.stdio;
@@ -120,8 +121,13 @@ GuideData readGuide()
 	return result;
 }
 
-void main()
+void main(string[] args)
 {
+	import steamguides.net : verbose;
+	getopt(args,
+		"verbose", &verbose,
+	);
+
 	auto localData = readGuide();
 
 	auto api = Guide(localData.id);
