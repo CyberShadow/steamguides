@@ -33,7 +33,7 @@ enum imageMapFN = imageDir ~ "images.txt";
 GuideData readGuide()
 {
 	GuideData result;
-	result.id = readText("guideid.txt");
+	result.id = readText("guideid.txt").strip;
 
 	GuideData.Image[string] imageMap;
 	if (imageMapFN.exists)
