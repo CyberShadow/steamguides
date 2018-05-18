@@ -139,7 +139,8 @@ void main(string[] args)
 	void save()
 	{
 		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.remoteHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
-		localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.remoteHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
+		if (imageDir.exists)
+			localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.remoteHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
 	}
 
 	auto remoteImages = remoteData.images.map!(image => image.id).toSet;
