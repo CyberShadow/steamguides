@@ -40,15 +40,16 @@ GuideData readGuide()
 			.map!(t => tuple(t[2],
 					args!(GuideData.Image, id => t[0], remoteHash => t[1], fileName => t[2]))).assocArray;
 
-	foreach (de; dirEntries(imageDir, "*.{png,jpg,jpeg,gif}", SpanMode.shallow).array.sort())
-	{
-		GuideData.Image image;
-		image.fileName = de.name.baseName;
-		if (image.fileName in imageMap)
-			image = imageMap[de.name.baseName];
-		image.localHash = mdFile(de.name).toLowerHex;
-		result.images ~= image;
-	}
+	if (imageDir.exists)
+		foreach (de; dirEntries(imageDir, "*.{png,jpg,jpeg,gif}", SpanMode.shallow).array.sort())
+		{
+			GuideData.Image image;
+			image.fileName = de.name.baseName;
+			if (image.fileName in imageMap)
+				image = imageMap[de.name.baseName];
+			image.localHash = mdFile(de.name).toLowerHex;
+			result.images ~= image;
+		}
 
 	GuideData.Section[string] sectionMap;
 	if (sectionMapFN.exists)
