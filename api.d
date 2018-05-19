@@ -21,7 +21,7 @@ import ae.utils.text;
 import steamguides.data;
 import steamguides.net;
 
-enum urlPrefix = "http://steamcommunity.com/sharedfiles/";
+enum urlPrefix = "https://steamcommunity.com/sharedfiles/";
 
 string apiGet(string res)
 {
