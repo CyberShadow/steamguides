@@ -1,0 +1,16 @@
+name "upload"
+description "Steam Guide Uploader"
+authors "Vladimir Panteleev <vladimir@thecybershadow.net>"
+homepage "https://github.com/CyberShadow/steamguides"
+license "MPL-2.0"
+license "Boost-1.0"
+
+targetType "executable"
+
+# https://github.com/dlang/dub/issues/825
+sourceFiles "api.d"
+sourceFiles "data.d"
+sourceFiles "net.d"
+sourceFiles "upload.d"
+
+dependency "ae" version="==0.0.2177"

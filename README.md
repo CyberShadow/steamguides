@@ -6,6 +6,10 @@ Useful for anyone who would prefer to use their favorite text editor or other to
 
 ## Usage
 
+### Building
+
+[Get D](https://dlang.org/download.html) and run `dub build` in the program directory to build the `upload` program.
+
 ### Uploader Setup
 
 You must first export your cookies to a text file to allow the program to upload the guide under your account. To do so:
