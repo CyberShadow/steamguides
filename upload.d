@@ -81,7 +81,7 @@ GuideData readGuide()
 				else
 					stderr.writefln(">>> Ignoring link to unknown section '%s'!", sectionName);
 
-				return format("[url=http://steamcommunity.com/sharedfiles/filedetails/?id=%s#%s]%s[/url]",
+				return format("[url=https://steamcommunity.com/sharedfiles/filedetails/?id=%s#%s]%s[/url]",
 					result.id, sectionID, linkText);
 			})(re!`\[section-link=(.*?)\](.*?)\[/section-link\]`);
 
