@@ -1,6 +1,7 @@
 module steamguides.api;
 
 import std.algorithm.iteration;
+import std.algorithm.searching;
 import std.array;
 import std.conv;
 import std.exception;
@@ -157,6 +158,8 @@ struct Guide
 	{
 		assert(!full, "Not implemented");
 		auto html = apiGet("manageguide/?id=" ~ this.id);
+		if (html.canFind(`<title>Steam Community :: Error</title>`))
+			throw new Exception("Steam returned error page - not logged in / cookies expired?");
 		auto sectionIDs = html
 			.extractCapture(re!`href="javascript:RemoveSubSection\( subSection_\d+, '(\d+)' \)">`)
 			.array;
