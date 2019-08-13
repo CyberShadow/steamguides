@@ -123,10 +123,26 @@ struct Guide
 			MultipartPart([`Content-Disposition` : `form-data; name="file"; filename="` ~ fileName ~ `"`, `Content-Type` : guessMime(fileName)], data),
 			boundary);
 		auto html = cast(string)req(imageAction, HTTP.Method.post, postData.contents, ["Content-Type" : "multipart/form-data; boundary=" ~ boundary]);
+
+		auto result = html
+			.extractCapture(re!`\bwindow\.top\.window\.DoneFileUpload\( (".*?"), uploadDetails \);\r\n`)
+			.front
+			.jsonParse!string;
+		switch (result)
+		{
+			case "1":
+				break; // all OK
+			case "25":
+				throw new Exception("Image upload failed (file too large)");
+			default:
+				throw new Exception("Image upload failed (error " ~ result ~ ")");
+		}
+
 		auto jsonImages = html
 			.extractCapture(re!`\buploadDetails = (\[.*?\]);\r\n`)
 			.front
 			.jsonParse!(JsonImage[]);
+		enforce(jsonImages.length, "Image upload failed (no results)");
 		return jsonImages.map!(image => image.toGuideData).array;
 	}
 
