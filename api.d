@@ -137,6 +137,8 @@ struct Guide
 				break; // all OK
 			case "25":
 				throw new Exception("Image upload failed (file too large)");
+			case "29":
+				throw new Exception("Image upload failed (file already exists)");
 			default:
 				throw new Exception("Image upload failed (error " ~ result ~ ")");
 		}

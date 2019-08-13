@@ -10,6 +10,7 @@ import ae.utils.text;
 
 import std.algorithm.comparison;
 import std.algorithm.iteration;
+import std.algorithm.searching;
 import std.algorithm.sorting;
 import std.array;
 import std.exception;
@@ -150,7 +151,15 @@ void main(string[] args)
 	{
 		string targetID = null;
 		if (!image.id)
+		{
+			foreach (r; remoteData.images.filter!(remoteImage => remoteImage.fileName == image.fileName))
+			{
+				stderr.writefln("Overwriting image %s (%s)...", r.id, r.fileName);
+				api.removePreview(r.id);
+				remoteImages.remove(r.id);
+			}
 			stderr.writefln("Uploading new image %s...", image.fileName);
+		}
 		else if (image.id !in remoteImages)
 		{
 			stderr.writefln("Recreating image %s (was ID %s)...", image.fileName, image.id);
@@ -192,9 +201,9 @@ void main(string[] args)
 	auto localImages = localData.images.map!(image => image.id).toSet;
 
 	foreach (image; remoteData.images)
-		if (image.id !in localImages)
+		if (image.id !in localImages && image.id in remoteImages)
 		{
-			stderr.writefln("Deleting extant image %s...", image.id);
+			stderr.writefln("Deleting extant image %s (%s)...", image.id, image.fileName);
 			api.removePreview(image.id);
 		}
 
