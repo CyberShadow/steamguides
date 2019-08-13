@@ -117,6 +117,9 @@ struct Guide
 
 	GuideData.Image[] uploadImage(string fileName, Data data)
 	{
+		if (data.length > 2 * 1024 * 1024)
+			stderr.writefln("Warning: image file %s is over 2MB", fileName);
+
 		string boundary = "-----------------------------" ~ randomString;
 		auto postData = encodeMultipart(
 			imageForm.map!(pair => MultipartPart([`Content-Disposition` : `form-data; name="` ~ pair[0] ~ `"`], Data(pair[1]))).array ~
