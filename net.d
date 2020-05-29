@@ -83,8 +83,9 @@ void[] req(string url, HTTP.Method method, const(void)[] data, string[string] ex
     http.perform();
     if (statusLine.code / 100 == 3)
     {
-	    stderr.writeln("Following redirect!");
-	    return req(responseHeaders["location"], HTTP.Method.get, null, null);
+	    auto target = responseHeaders["location"];
+	    stderr.writeln("Following redirect to " ~ target);
+		return req(target, HTTP.Method.get, null, null);
     }
     enforce(statusLine.code / 100 == 2, new HTTPStatusException(statusLine.code,
             format("HTTP request returned status code %d (%s)", statusLine.code, statusLine.reason)));
