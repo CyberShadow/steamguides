@@ -129,21 +129,8 @@ struct Guide
 			boundary);
 		auto html = cast(string)req(imageAction, HTTP.Method.post, postData.contents, ["Content-Type" : "multipart/form-data; boundary=" ~ boundary]);
 
-		auto result = html
-			.extractCapture(re!`\bwindow\.top\.window\.DoneFileUpload\( (".*?"), uploadDetails \);\r\n`)
-			.front
-			.jsonParse!string;
-		switch (result)
-		{
-			case "1":
-				break; // all OK
-			case "25":
-				throw new Exception("Image upload failed (file too large)");
-			case "29":
-				throw new Exception("Image upload failed (file already exists)");
-			default:
-				throw new Exception("Image upload failed (error " ~ result ~ ")");
-		}
+		if (html.canFind("<title>Steam Community :: Error</title>"))
+			throw new Exception("Steam error: " ~ html.extractCapture(re!`<h3>(.*)</h3>`).front);
 
 		auto jsonImages = html
 			.extractCapture(re!`\buploadDetails = (\[.*?\]);\r\n`)
