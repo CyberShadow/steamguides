@@ -11,6 +11,7 @@ import std.stdio;
 import std.typecons;
 
 import ae.net.http.common;
+import ae.net.ietf.headers;
 import ae.net.ietf.url;
 import ae.sys.data;
 import ae.sys.file;
@@ -123,8 +124,8 @@ struct Guide
 
 		string boundary = "-----------------------------" ~ randomString;
 		auto postData = encodeMultipart(
-			imageForm.map!(pair => MultipartPart([`Content-Disposition` : `form-data; name="` ~ pair[0] ~ `"`], Data(pair[1]))).array ~
-			MultipartPart([`Content-Disposition` : `form-data; name="file"; filename="` ~ fileName ~ `"`, `Content-Type` : guessMime(fileName)], data),
+			imageForm.map!(pair => MultipartPart(Headers([`Content-Disposition` : `form-data; name="` ~ pair[0] ~ `"`]), Data(pair[1]))).array ~
+			MultipartPart(Headers([`Content-Disposition` : `form-data; name="file"; filename="` ~ fileName ~ `"`, `Content-Type` : guessMime(fileName)]), data),
 			boundary);
 		auto html = cast(string)req(imageAction, HTTP.Method.post, postData.contents, ["Content-Type" : "multipart/form-data; boundary=" ~ boundary]);
 

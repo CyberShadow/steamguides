@@ -25,8 +25,6 @@ import std.typecons;
 import steamguides.api;
 import steamguides.data;
 
-alias toFile = ae.sys.file.toFile;
-
 enum sectionMapFN = "sections.txt";
 enum imageDir = "images/";
 enum imageMapFN = imageDir ~ "images.txt";
@@ -139,9 +137,9 @@ void main(string[] args)
 
 	void save()
 	{
-		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.remoteHash, section.fileName)).join("\n").atomic!toFile(sectionMapFN);
+		localData.sections.map!(section => "%s\t%s\t%s".format(section.id, section.remoteHash, section.fileName)).join("\n").atomic!writeTo(sectionMapFN);
 		if (imageDir.exists)
-			localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.remoteHash, image.fileName)).join("\n").atomic!toFile(imageMapFN);
+			localData.images.map!(image => "%s\t%s\t%s".format(image.id, image.remoteHash, image.fileName)).join("\n").atomic!writeTo(imageMapFN);
 	}
 
 	auto remoteImages = remoteData.images.map!(image => image.id).toSet;
