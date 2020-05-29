@@ -47,7 +47,7 @@ GuideData readGuide()
 			image.fileName = de.name.baseName;
 			if (image.fileName in imageMap)
 				image = imageMap[de.name.baseName];
-			image.localHash = mdFile(de.name).toLowerHex;
+			image.localHash = mdFile(de.name).toLowerHex.idup;
 			result.images ~= image;
 		}
 
