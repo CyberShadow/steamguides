@@ -40,6 +40,7 @@ string sessionid;
 struct Guide
 {
 	string id;
+	string imagePrefix;
 
 	string imageAction;
 	Tuple!(string, string)[] imageForm;
@@ -108,11 +109,12 @@ struct Guide
 		string filename;
 		int preview_type;
 
-		GuideData.Image toGuideData()
+		GuideData.Image toGuideData(string imagePrefix)
 		{
 			GuideData.Image image;
 			image.id = this.previewid;
 			image.fileName = this.filename;
+			image.fileName.skipOver(imagePrefix);
 			return image;
 		}
 	}
@@ -125,7 +127,7 @@ struct Guide
 		string boundary = "-----------------------------" ~ randomString;
 		auto postData = encodeMultipart(
 			imageForm.map!(pair => MultipartPart(Headers([`Content-Disposition` : `form-data; name="` ~ pair[0] ~ `"`]), Data(pair[1]))).array ~
-			MultipartPart(Headers([`Content-Disposition` : `form-data; name="file"; filename="` ~ fileName ~ `"`, `Content-Type` : guessMime(fileName)]), data),
+			MultipartPart(Headers([`Content-Disposition` : `form-data; name="file"; filename="` ~ imagePrefix ~ fileName ~ `"`, `Content-Type` : guessMime(fileName)]), data),
 			boundary);
 		auto html = cast(string)req(imageAction, HTTP.Method.post, postData.contents, ["Content-Type" : "multipart/form-data; boundary=" ~ boundary]);
 
@@ -137,7 +139,7 @@ struct Guide
 			.front
 			.jsonParse!(JsonImage[]);
 		enforce(jsonImages.length, "Image upload failed (no results)");
-		return jsonImages.map!(image => image.toGuideData).array;
+		return jsonImages.map!(image => image.toGuideData(imagePrefix)).array;
 	}
 
 	/// Download guide data from Steam.
@@ -172,7 +174,7 @@ struct Guide
 			.front
 			.jsonParse!(JsonImage[]);
 		foreach (jsonImage; jsonImages)
-			data.images ~= jsonImage.toGuideData;
+			data.images ~= jsonImage.toGuideData(imagePrefix);
 
 		auto formHtml = html
 			.extractCapture(re!(`<form class="smallForm" enctype="multipart/form-data" method="POST" name="PreviewFileUpload" (.*?)</form>`, "s"))

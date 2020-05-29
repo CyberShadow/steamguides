@@ -130,6 +130,8 @@ void main(string[] args)
 	auto localData = readGuide();
 
 	auto api = Guide(localData.id);
+	if ("images/prefix.txt".exists())
+		api.imagePrefix = "images/prefix.txt".readText().strip();
 
 	stderr.writeln("Getting guide info...");
 	auto remoteData = api.download(false);
