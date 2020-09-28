@@ -174,7 +174,15 @@ struct Guide
 			.front
 			.jsonParse!(JsonImage[]);
 		foreach (jsonImage; jsonImages)
+		{
+			if (!jsonImage.url.length)
+			{
+				stderr.writeln("Detected corrupted image: ", jsonImage.filename);
+				removePreview(jsonImage.previewid);
+				continue;
+			}
 			data.images ~= jsonImage.toGuideData(imagePrefix);
+		}
 
 		auto formHtml = html
 			.extractCapture(re!(`<form class="smallForm" enctype="multipart/form-data" method="POST" name="PreviewFileUpload" (.*?)</form>`, "s"))
