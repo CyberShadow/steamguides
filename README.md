@@ -71,6 +71,3 @@ An additional syntax is provided for linking to sections: `[section-link=SECTION
 If you create a directory called `images` in your guide directory, the program will also upload any image files placed there.
 
 You can then reference them in your guide using the usual `[previewimg]` and `[previewicon]` tags, however, instead of the numeric ID, you can specify an image file name. For example: `[previewicon=smiley.png;sizeOriginal,inline][/previewicon]`
-
-Sometimes Steam will forget your images and give you a "You have already uploaded that file" error even if you delete and attempt to re-upload them.
-Should this happen, you can create the file `images/prefix.txt`, containing a prefix to be prepended to uploaded file names, which will avoid this error.
