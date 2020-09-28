@@ -4,6 +4,7 @@ import std.algorithm.iteration;
 import std.algorithm.searching;
 import std.array;
 import std.conv;
+import std.datetime.systime;
 import std.exception;
 import std.file;
 import std.net.curl;
@@ -138,7 +139,11 @@ struct Guide
 			.extractCapture(re!`\buploadDetails = (\[.*?\]);\r\n`)
 			.front
 			.jsonParse!(JsonImage[]);
-		enforce(jsonImages.length, "Image upload failed (no results)");
+		if (!jsonImages.length)
+		{
+			stderr.writeln("Image upload failed (no results), retrying with another filename");
+			return uploadImage(Clock.currTime.toUnixTime.text ~ "_" ~ fileName, data);
+		}
 		return jsonImages.map!(image => image.toGuideData(imagePrefix)).array;
 	}
 
