@@ -155,6 +155,8 @@ struct Guide
 		auto html = apiGet("manageguide/?id=" ~ this.id);
 		if (html.canFind(`<title>Steam Community :: Error</title>`))
 			throw new Exception("Steam returned error page - not logged in / cookies expired?");
+		if (html.canFind(`<title>Steam Community :: Guide :: `))
+			throw new Exception("Steam returned public page - not logged in / cookies expired?");
 		auto sectionIDs = html
 			.extractCapture(re!`href="javascript:RemoveSubSection\( subSection_\d+, '(\d+)' \)">`)
 			.array;
