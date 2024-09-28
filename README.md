@@ -24,7 +24,7 @@ You must first export your cookies to a text file to allow the program to upload
 8. Find the "Cookie" header within.
 9. Copy the value of the cookie header.
 10. Navigate to your user app settings directory:
-    - Windows: `%USERPROFILE%\AppData`
+    - Windows: `%USERPROFILE%\AppData\Roaming`
     - POSIX (Linux/Mac): `$XDG_CONFIG_HOME` or `~/.config`
 11. Create the directory `cookies`.
 12. Create the text file `steamcommunity.com` (no additional extension).
