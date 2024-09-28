@@ -1,0 +1,11 @@
+name: build
+on: [ push, pull_request ]
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: dlang-community/setup-dlang@v2
+      with:
+        compiler: dmd-2.100.0
+    - run: dub build
