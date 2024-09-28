@@ -7,8 +7,8 @@ import std.conv;
 import std.datetime.systime;
 import std.exception;
 import std.file;
-import std.net.curl;
 import std.stdio;
+import std.string;
 import std.typecons;
 
 import ae.net.http.common;
@@ -28,12 +28,12 @@ enum urlPrefix = "https://steamcommunity.com/sharedfiles/";
 
 string apiGet(string res)
 {
-	return cast(string)req(urlPrefix ~ res, HTTP.Method.get, null);
+	return cast(string)req(urlPrefix ~ res, "GET", null);
 }
 
 string apiPost(string name, string[string] params)
 {
-	return cast(string)req(urlPrefix ~ name, HTTP.Method.post, encodeUrlParameters(params));
+	return cast(string)req(urlPrefix ~ name, "POST", encodeUrlParameters(params));
 }
 
 string sessionid;
@@ -130,7 +130,7 @@ struct Guide
 			imageForm.map!(pair => MultipartPart(Headers([`Content-Disposition` : `form-data; name="` ~ pair[0] ~ `"`]), Data(pair[1]))).array ~
 			MultipartPart(Headers([`Content-Disposition` : `form-data; name="file"; filename="` ~ imagePrefix ~ fileName ~ `"`, `Content-Type` : guessMime(fileName)]), data),
 			boundary);
-		auto html = cast(string)req(imageAction, HTTP.Method.post, postData.contents, ["Content-Type" : "multipart/form-data; boundary=" ~ boundary]);
+		auto html = cast(string)req(imageAction, "POST", postData.contents, ["Content-Type" : "multipart/form-data; boundary=" ~ boundary]);
 
 		if (html.canFind("<title>Steam Community :: Error</title>"))
 			throw new Exception("Steam error: " ~ html.extractCapture(re!`<h3>(.*)</h3>`).front);

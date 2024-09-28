@@ -2,6 +2,7 @@ module steamguides.upload;
 
 import ae.sys.dataio;
 import ae.sys.file;
+import ae.sys.net.system;
 import ae.utils.aa;
 import ae.utils.digest;
 import ae.utils.meta.args;
