@@ -13,4 +13,4 @@ sourceFiles "data.d"
 sourceFiles "net.d"
 sourceFiles "upload.d"
 
-dependency "ae" version="==0.0.2686"
+dependency "ae" version="==0.0.3576"
