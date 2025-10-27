@@ -136,7 +136,7 @@ struct Guide
 			throw new Exception("Steam error: " ~ html.extractCapture(re!`<h3>(.*)</h3>`).front);
 
 		auto jsonImages = html
-			.extractCapture(re!`\buploadDetails = (\[.*?\]);\r\n`)
+			.extractCapture(re!`\buploadDetails = (\[.*?\]);\n`)
 			.enforceNonEmpty("Can't find uploadDetails in HTML")
 			.front
 			.jsonParse!(JsonImage[]);
@@ -165,7 +165,7 @@ struct Guide
 		if (!sessionid)
 		{
 			sessionid = html
-				.extractCapture(re!`\bg_sessionID = "([^"]*)";\r\n`)
+				.extractCapture(re!`\bg_sessionID = "([^"]*)";\n`)
 				.enforceNonEmpty("Can't find g_sessionID in HTML")
 				.front;
 		}
