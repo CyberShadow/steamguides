@@ -137,6 +137,7 @@ struct Guide
 
 		auto jsonImages = html
 			.extractCapture(re!`\buploadDetails = (\[.*?\]);\r\n`)
+			.enforceNonEmpty("Can't find uploadDetails in HTML")
 			.front
 			.jsonParse!(JsonImage[]);
 		if (!jsonImages.length)
@@ -153,6 +154,7 @@ struct Guide
 	{
 		assert(!full, "Not implemented");
 		auto html = apiGet("manageguide/?id=" ~ this.id);
+		scope(failure) std.file.write("steam-error.html", html);
 		if (html.canFind(`<title>Steam Community :: Error</title>`))
 			throw new Exception("Steam returned error page - not logged in / cookies expired?");
 		if (html.canFind(`<title>Steam Community :: Guide :: `))
@@ -164,6 +166,7 @@ struct Guide
 		{
 			sessionid = html
 				.extractCapture(re!`\bg_sessionID = "([^"]*)";\r\n`)
+				.enforceNonEmpty("Can't find g_sessionID in HTML")
 				.front;
 		}
 
@@ -199,4 +202,10 @@ struct Guide
 
 		return data;
 	}
+}
+
+private R enforceNonEmpty(R)(R captures, string message)
+{
+	enforce(!captures.empty, message);
+	return captures;
 }
