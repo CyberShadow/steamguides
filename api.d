@@ -33,7 +33,9 @@ string apiGet(string res)
 
 string apiPost(string name, string[string] params)
 {
-	return cast(string)req(urlPrefix ~ name, "POST", encodeUrlParameters(params));
+	return cast(string)req(urlPrefix ~ name, "POST", encodeUrlParameters(params), [
+		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+	]);
 }
 
 string sessionid;
@@ -93,6 +95,7 @@ struct Guide
 
 	void removePreview(string previewid)
 	{
+		stderr.writeln("Deleting image with ID: ", previewid);
 		apiPost("removepreview", [
 			"sessionid" : sessionid,
 			"id" : this.id,
