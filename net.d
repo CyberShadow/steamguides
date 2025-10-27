@@ -50,6 +50,5 @@ void[] req(string url, string method, const(void)[] data, string[string] extraHe
         "HTTP request returned status code %d (%s)",
         response.status, response.statusMessage
     )));
-
-    return response.data.joinToGC;
+    return response.getContent().toGC;
 }
