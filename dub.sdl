@@ -13,5 +13,5 @@ sourceFiles "data.d"
 sourceFiles "net.d"
 sourceFiles "upload.d"
 
-dependency "ae" version="==0.0.3074"
-dependency "ae:sys-net-system" version="==0.0.3074"
+dependency "ae" version="==0.0.3576"
+dependency "ae:sys-net-system" version="==0.0.3576"
